@@ -1,0 +1,12 @@
+{
+  "name": "austinkloske22-unified-sap-addon",
+  "version": "1.0.0",
+  "description": "austinkloske22-unified-sap-addon",
+  "repositoryLayout": {
+    "format": "json",
+    "formatVersion": "6",
+    "keepClient": "false",
+    "metaInformation": ".gctsmetadata/",
+    "tableContent": "true"
+  }
+}
