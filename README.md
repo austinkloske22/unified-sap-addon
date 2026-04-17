@@ -78,6 +78,67 @@ The [clone repo](https://github.com/austinkloske22/unified-sap-addon-clone) is l
 
 The **"Allow Pull and Push"** role means the BTP system can both consume and publish changes to the clone repo — this is what enables the bidirectional sync needed for 2-way mirroring.
 
+## Bidirectional Sync
+
+The two repos have independent git histories and independent gCTS identity configs, so standard git merge/cherry-pick won't work. Instead, we use `rsync`-based file mirroring that syncs only the ABAP content (`objects/`, `.gctsmetadata/`) while preserving each repo's identity (`.gcts.properties.json`, `README.md`, etc.).
+
+### What Syncs vs What's Protected
+
+| Synced (ABAP content) | Protected (repo identity) |
+|------------------------|---------------------------|
+| `objects/**` (mirrored) | `.gcts.properties.json` |
+| `.gctsmetadata/nametabs/**` (additive) | `.gitignore` |
+| `.gctsmetadata/objecttypes/**` (additive) | `README.md`, `CLAUDE.md`, `docs/` |
+
+- **Mirrored** = exact copy, files deleted in source are deleted in target
+- **Additive** = new files copied over, target-specific files preserved
+
+### GitHub Actions (Active)
+
+Automated sync via GitHub Actions. Triggers on every push to `main` that modifies `objects/` or `.gctsmetadata/`.
+
+**Forward sync** (source → clone): [`.github/workflows/sync-to-clone.yml`](.github/workflows/sync-to-clone.yml)
+- Triggers when D10 pushes a transport to this repo
+- Syncs ABAP objects and metadata to [unified-sap-addon-clone](https://github.com/austinkloske22/unified-sap-addon-clone)
+- Commits with `[SYNC] <original-transport-message>` prefix
+
+**Reverse sync** (clone → source): Lives in the [clone repo's workflow](https://github.com/austinkloske22/unified-sap-addon-clone/blob/main/.github/workflows/sync-to-source.yml)
+- Triggers when BTP pushes changes to the clone repo
+- Syncs ABAP objects and metadata back to this repo
+
+**Loop prevention:** Sync commits are made by `github-actions[bot]`. Both workflows skip when `github.actor == 'github-actions[bot]'`, breaking the cycle.
+
+#### Setup
+
+1. Create a GitHub Personal Access Token (PAT) with `repo` scope at [github.com/settings/tokens](https://github.com/settings/tokens)
+2. Add the PAT as a repository secret named `SYNC_PAT` in **both** repos:
+   - [unified-sap-addon secrets](https://github.com/austinkloske22/unified-sap-addon/settings/secrets/actions)
+   - [unified-sap-addon-clone secrets](https://github.com/austinkloske22/unified-sap-addon-clone/settings/secrets/actions)
+
+### Bitbucket Pipelines (Future)
+
+> This section is a placeholder. The production deployment will use Bitbucket private repos with Bitbucket Pipelines for the same sync logic.
+
+The GitHub Actions workflows will be ported to `bitbucket-pipelines.yml` equivalents using Bitbucket's pipe-based architecture. Key differences:
+- Trigger via `push` to `main` with path filters in `bitbucket-pipelines.yml`
+- Cross-repo push uses Bitbucket App Passwords instead of GitHub PATs
+- Pipeline variables replace GitHub Actions secrets
+
+### Local Script (Manual Fallback)
+
+For initial population, debugging, or manual overrides:
+
+```bash
+# Preview what would change (dry run)
+./scripts/gcts-sync.sh status
+
+# Sync source → clone
+./scripts/gcts-sync.sh forward
+
+# Sync clone → source
+./scripts/gcts-sync.sh reverse
+```
+
 ## Repository Structure
 
 ```
@@ -85,6 +146,10 @@ unified-sap-addon/
 ├── objects/                      # Serialized ABAP objects (gCTS JSON format)
 ├── .gctsmetadata/                # gCTS metadata table definitions
 ├── .gcts.properties.json         # gCTS repository configuration
+├── .github/workflows/
+│   └── sync-to-clone.yml        # GitHub Actions: forward sync to clone repo
+├── scripts/
+│   └── gcts-sync.sh             # Local sync script (forward/reverse/status)
 ├── docs/
 │   ├── gcts-transport-diagram.html           # Interactive architecture diagram
 │   ├── Public-Cloud-gCTS-repo.png            # D10 gCTS system screenshot
@@ -104,4 +169,4 @@ unified-sap-addon/
 
 ## Related Repositories
 
-- [unified-sap-addon-clone](https://github.com/austinkloske22/unified-sap-addon-clone) — gCTS Enabled BTP ABAP Environment Repo (included as submodule)
+- [unified-sap-addon-clone](https://github.com/austinkloske22/unified-sap-addon-clone) — gCTS Enabled BTP ABAP Environment Repo (synced via GitHub Actions)
