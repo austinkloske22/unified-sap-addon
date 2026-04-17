@@ -1,0 +1,63 @@
+name: Sync to Clone
+
+# Trigger on pushes to main that touch ABAP objects or gCTS metadata.
+# This covers gCTS transport releases from the D10 system.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'objects/**'
+      - '.gctsmetadata/**'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    # Skip if this push was made by the sync bot (prevents infinite loops)
+    if: github.actor != 'github-actions[bot]'
+
+    steps:
+      - name: Checkout source repo
+        uses: actions/checkout@v4
+        with:
+          path: source
+          fetch-depth: 1
+
+      - name: Checkout clone repo
+        uses: actions/checkout@v4
+        with:
+          repository: austinkloske22/unified-sap-addon-clone
+          token: ${{ secrets.SYNC_PAT }}
+          path: clone
+          fetch-depth: 1
+
+      - name: Sync ABAP objects and metadata
+        run: |
+          # Mirror objects/ (delete files in clone not in source)
+          rsync -av --delete source/objects/ clone/objects/
+
+          # Additive sync of nametabs (preserve clone-specific files)
+          rsync -av source/.gctsmetadata/nametabs/ clone/.gctsmetadata/nametabs/
+
+          # Additive sync of objecttypes
+          mkdir -p clone/.gctsmetadata/objecttypes/
+          rsync -av source/.gctsmetadata/objecttypes/ clone/.gctsmetadata/objecttypes/
+
+      - name: Commit and push to clone
+        run: |
+          cd clone
+          git config user.name "gcts-sync-bot"
+          git config user.email "gcts-sync-bot@contax.com"
+          git add objects/ .gctsmetadata/
+
+          if git diff --cached --quiet; then
+            echo "No changes to sync"
+            exit 0
+          fi
+
+          # Preserve the original commit message from the source push
+          SOURCE_MSG=$(cd ../source && git log -1 --format='%s')
+          git commit -m "[SYNC] ${SOURCE_MSG}"
+
+          # Retry push with pull-rebase in case of concurrent updates
+          git push || (git pull --rebase && git push)
