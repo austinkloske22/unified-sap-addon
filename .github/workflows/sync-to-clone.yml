@@ -32,7 +32,7 @@ jobs:
       - name: Checkout clone repo
         uses: actions/checkout@v4
         with:
-          repository: austinkloske22/unified-sap-addon-clone
+          repository: austinkloske22/unified-sap-addon-btp
           token: ${{ secrets.SYNC_PAT }}
           path: clone
           fetch-depth: 1
