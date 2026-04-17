@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git diff-tree *)",
+      "Bash(find *)",
+      "Bash(git config *)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(gh api *)",
+      "Bash(git clone *)",
+      "Bash(chmod +x *)",
+      "Bash(./scripts/gcts-sync.sh status *)",
+      "Bash(./scripts/gcts-sync.sh forward *)",
+      "Bash(git push *)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:docs.abapgit.org)",
+      "Bash(ls *)",
+      "Bash(gh auth *)",
+      "Bash(gh repo *)",
+      "Bash(mv /Users/austinkloske/contax/unified-sap-addon/unified-sap-addon-clone/abapgit-cli /Users/austinkloske/contax/)",
+      "Read(//Users/austinkloske/contax/**)",
+      "Bash(npm init *)",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(cp -r /Users/austinkloske/contax/unified-sap-addon/objects/TABL /Users/austinkloske/contax/abapgit-cli/test/fixtures/gcts/)",
+      "Bash(cp -r /Users/austinkloske/contax/unified-sap-addon/objects/DDLS /Users/austinkloske/contax/abapgit-cli/test/fixtures/gcts/)",
+      "Bash(cp -r /Users/austinkloske/contax/unified-sap-addon/objects/BDEF /Users/austinkloske/contax/abapgit-cli/test/fixtures/gcts/)",
+      "Bash(cp -r /Users/austinkloske/contax/unified-sap-addon/objects/CLAS /Users/austinkloske/contax/abapgit-cli/test/fixtures/gcts/)",
+      "Bash(npx vitest *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(node *)",
+      "Bash(npm whoami *)",
+      "Bash(git reset *)",
+      "Bash(rm scripts/gcts-sync.sh)",
+      "Bash(rmdir scripts *)",
+      "Bash(mkdir -p src)",
+      "Bash(npx abapgit-cli@latest convert --from gcts --to abapgit -i /Users/austinkloske/contax/unified-sap-addon/objects -o src -v)"
+    ]
+  }
+}

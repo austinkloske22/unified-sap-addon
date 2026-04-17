@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: source
-          fetch-depth: 1
+          fetch-depth: 2  # need parent commit for diff-based sync
 
       - name: Checkout clone repo
         uses: actions/checkout@v4
@@ -31,24 +31,65 @@ jobs:
           path: clone
           fetch-depth: 1
 
-      - name: Sync ABAP objects and metadata
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Convert gCTS objects to abapGit format
         run: |
-          # Mirror objects/ (delete files in clone not in source)
-          rsync -av --delete source/objects/ clone/objects/
+          # Determine what changed in this push
+          cd source
+          CHANGED_TYPES=$(git diff --name-only HEAD~1 HEAD -- objects/ | \
+            sed -n 's|^objects/\([^/]*\)/.*|\1|p' | sort -u | tr '\n' ',' | sed 's/,$//')
+          cd ..
 
-          # Additive sync of nametabs (preserve clone-specific files)
-          rsync -av source/.gctsmetadata/nametabs/ clone/.gctsmetadata/nametabs/
+          if [ -z "$CHANGED_TYPES" ]; then
+            echo "No object type changes detected"
+            exit 0
+          fi
 
-          # Additive sync of objecttypes
-          mkdir -p clone/.gctsmetadata/objecttypes/
-          rsync -av source/.gctsmetadata/objecttypes/ clone/.gctsmetadata/objecttypes/
+          echo "Changed object types: $CHANGED_TYPES"
+
+          # Convert ALL objects using abapgit-cli (produces portable format)
+          # The clone repo gets the full converted set — abapgit-cli strips
+          # system-specific fields that would break BTP import
+          npx abapgit-cli@latest convert \
+            --from gcts --to abapgit \
+            -i source/objects \
+            -o clone/src \
+            -v
+
+      - name: Check for deleted objects
+        run: |
+          cd source
+          # Find objects deleted in this push
+          DELETED=$(git diff --name-only --diff-filter=D HEAD~1 HEAD -- objects/ || true)
+          cd ..
+
+          if [ -n "$DELETED" ]; then
+            echo "Deleted objects detected:"
+            echo "$DELETED"
+            # Map deleted gCTS paths to abapGit filenames and remove them
+            for gcts_path in $DELETED; do
+              # Extract type and name from path: objects/TABL/%2FCOSS%2FEVENT/...
+              obj_type=$(echo "$gcts_path" | cut -d'/' -f2)
+              obj_dir=$(echo "$gcts_path" | cut -d'/' -f3)
+              # Decode %2F to / then convert to abapgit # format
+              obj_name=$(echo "$obj_dir" | python3 -c "import sys,urllib.parse; print(urllib.parse.unquote(sys.stdin.read().strip()))")
+              abapgit_base=$(echo "$obj_name" | sed 's|/|#|g' | tr '[:upper:]' '[:lower:]')
+              # Remove all files matching this object in clone/src/
+              find clone/src/ -name "${abapgit_base}.*" -delete 2>/dev/null || true
+              echo "  Removed ${abapgit_base}.* from clone"
+            done
+          fi
 
       - name: Commit and push to clone
         run: |
           cd clone
           git config user.name "gcts-sync-bot"
           git config user.email "gcts-sync-bot@contax.com"
-          git add objects/ .gctsmetadata/
+          git add -A src/
 
           if git diff --cached --quiet; then
             echo "No changes to sync"
