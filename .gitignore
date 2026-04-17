@@ -1,3 +1,7 @@
+# Clone repo (kept locally, not tracked — gCTS can't handle submodules)
+unified-sap-addon-clone/
+.gitmodules
+
 # Logs
 logs
 *.log

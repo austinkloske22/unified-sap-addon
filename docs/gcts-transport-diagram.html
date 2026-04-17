@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>gCTS Transport Delivery Process</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --sap-blue:    #0070f2;
+    --sap-blue-dk: #0050cc;
+    --bg:          #eef0f3;
+    --card:        #ffffff;
+    --zone:        #e4e6ea;
+    --zone-bd:     #c5c8ce;
+    --inner:       #f0f1f3;
+    --inner-bd:    #cdd0d6;
+    --white:       #ffffff;
+    --text:        #32363a;
+    --sub:         #5a6470;
+    --muted:       #8a9097;
+    --font:        'IBM Plex Sans', sans-serif;
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  .card {
+    background: var(--card);
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06);
+    padding: 36px 44px 52px;
+    /* allow horizontal scroll on small viewports */
+    overflow-x: auto;
+  }
+
+  h1 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.01em;
+    margin-bottom: 28px;
+    min-width: 1590px; /* keeps heading aligned with diagram */
+  }
+
+  /* ── Fixed-size canvas ── */
+  .diagram {
+    position: relative;
+    width:  1590px;
+    height: 600px;
+  }
+
+  /* ── Box primitives ── */
+  .ga        { position:absolute; background:var(--zone);  border:1.5px solid var(--zone-bd);  border-radius:8px; }
+  .space     { position:absolute; background:var(--inner); border:1.5px solid var(--inner-bd); border-radius:6px; }
+  .inner-box { position:absolute; background:var(--white); border:1.5px solid var(--inner-bd); border-radius:5px; }
+  .mt-app    {
+    position:absolute; background:var(--white); border:1.5px solid var(--inner-bd);
+    border-radius:5px; display:flex; align-items:center; justify-content:center;
+    font-size:12px; color:var(--text); white-space:nowrap; padding:8px 14px;
+  }
+  .sw {
+    position:absolute;
+    background:var(--sap-blue); color:#fff;
+    border-radius:5px; font-size:12px; font-weight:600; line-height:1.35;
+    text-align:center; display:flex; align-items:center; justify-content:center;
+    box-shadow:0 2px 8px rgba(0,112,242,0.28);
+    cursor:default; transition:background 0.15s;
+  }
+  .sw:hover { background:var(--sap-blue-dk); }
+
+  /* ── Text labels ── */
+  .lbl-ga    { position:absolute; font-size:10.5px; font-weight:500; color:var(--sub);   letter-spacing:.05em; text-transform:uppercase; }
+  .lbl-space { position:absolute; font-size:11px;   font-weight:500; color:var(--sub); }
+  .lbl-sub   { position:absolute; font-size:10px;   color:var(--muted); }
+  .lbl-inner { position:absolute; font-size:10.5px; color:var(--sub); }
+  .lbl-desc  { position:absolute; font-size:9.5px;  color:var(--muted); font-style:italic; }
+
+  /* ── Arrow float labels ── */
+  .arrow-lbl {
+    position:absolute;
+    font-size:11px; color:var(--sub); white-space:nowrap;
+  }
+
+  /* ── SVG overlay ── */
+  svg.overlay {
+    position:absolute; top:0; left:0;
+    width:100%; height:100%;
+    pointer-events:none; overflow:visible;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>gCTS Transport Delivery Process</h1>
+
+  <div class="diagram">
+    <!--
+    ══════════════════════════════════════════════════════════════
+    COORDINATE PLAN
+    ══════════════════════════════════════════════════════════════
+
+    LEFT GA   : x=0,   y=10, w=278, h=240
+      Space (Multi-tenant): x=14, y=46, w=250, h=184
+      Inner D10: x=28, y=72, w=222, h=144
+      SW D10: x=69, y=112, w=118, h=48  cx=(128,136) bot=(128,160)
+
+    BTP GA    : x=298, y=10, w=620, h=240
+      01 Develop space: x=312, y=44, w=170, h=184
+        inner DEV: x=326, y=70, w=142, h=148
+        SW DEV: x=377, y=112, w=118, h=48   cx=(436,136) ← aligns with clone
+      02 Test space: x=492, y=44, w=170, h=184
+        inner TST: x=506, y=70, w=142, h=148
+        SW TST: x=525, y=112, w=118, h=48   cx=(584,136)
+      05 Provide space: x=672, y=44, w=232, h=184
+        inner EAT/AMT: x=686, y=70, w=200, h=148
+        SW EAT: x=703, y=112, w=118, h=48   cx=(762,136) right=821
+
+    MT App    : x=930, y=112, w=155, h=48  (outside BTP GA)
+
+    AWS       : x=1103, y=10, w=470, h=234
+      SED inner: x=1117, y=44, w=195, h=176
+        SW SED: x=1155, y=116, w=118, h=48  cx=(1214,140)
+      SET inner: x=1332, y=44, w=195, h=176
+        SW SET: x=1370, y=116, w=118, h=48  cx=(1429,140)
+
+    REPOS (unchanged x/y):
+      Clone: x=336, y=310, h=110   SW: x=377, y=348  cx=(436,372)  top=(436,348)
+      Source: x=336, y=455, h=110  SW: x=377, y=493  cx=(436,517)  right=(495,517)
+
+    ARROWS
+      A1  D10→source:   M128,160 → L128,517 → L375,517
+      SYNC source→clone: M436,493 → L436,398  (dashed blue)
+      A2  clone→DEV:    M436,348 → L436,162   (straight up ✓)
+      DEV→TST (internal): M495,136 → L523,136
+      TST→EAT (internal): M643,136 → L701,136
+      MT→EAT:           M928,136 → L823,136
+      A3  source→SED:   M495,517 → L1214,517 → L1214,166
+      A4  SED→SET:      M1214,164 → L1214,296 → L1429,296 → L1429,166
+    ══════════════════════════════════════════════════════════════
+    -->
+
+    <!-- ══ LEFT Global Account (D10) ══ -->
+    <div class="ga"        style="left:0; top:10px; width:278px; height:240px;"></div>
+    <span class="lbl-ga"   style="left:14px; top:18px;">Global Account</span>
+    <span class="lbl-sub"  style="left:14px; top:30px;">SAP Public Cloud</span>
+
+    <div class="space"     style="left:14px; top:46px; width:250px; height:184px;"></div>
+    <span class="lbl-space" style="left:26px; top:56px;">Multi-tenant 1 System Landscape</span>
+
+    <div class="inner-box" style="left:28px; top:72px; width:222px; height:144px;"></div>
+    <span class="lbl-inner" style="left:40px; top:82px; font-weight:500;">D10</span>
+
+    <div class="sw"        style="left:69px; top:112px; width:118px; height:48px;">
+      Software<br>Component
+    </div>
+
+
+    <!-- ══ BTP Global Account — 3-subaccount landscape ══ -->
+    <div class="ga"        style="left:298px; top:10px; width:620px; height:240px;"></div>
+    <span class="lbl-ga"   style="left:312px; top:18px;">Global Account</span>
+    <span class="lbl-sub"  style="left:312px; top:30px;">BTP ABAP Environment (Steampunk)</span>
+
+    <!-- 01 Develop -->
+    <div class="space"     style="left:312px; top:44px; width:170px; height:184px;"></div>
+    <span class="lbl-space" style="left:324px; top:54px;">01 Develop</span>
+    <div class="inner-box" style="left:326px; top:70px; width:142px; height:148px;"></div>
+    <span class="lbl-inner" style="left:338px; top:80px; font-weight:500;">DEV</span>
+    <span class="lbl-desc"  style="left:338px; top:93px;">Development</span>
+    <div class="sw"        style="left:377px; top:112px; width:118px; height:48px;">
+      Software<br>Component
+    </div>
+
+    <!-- 02 Test -->
+    <div class="space"     style="left:492px; top:44px; width:170px; height:184px;"></div>
+    <span class="lbl-space" style="left:504px; top:54px;">02 Test</span>
+    <div class="inner-box" style="left:506px; top:70px; width:142px; height:148px;"></div>
+    <span class="lbl-inner" style="left:518px; top:80px; font-weight:500;">TST</span>
+    <span class="lbl-desc"  style="left:518px; top:93px;">Test</span>
+    <div class="sw"        style="left:525px; top:112px; width:118px; height:48px;">
+      Software<br>Component
+    </div>
+
+    <!-- 05 Provide -->
+    <div class="space"     style="left:672px; top:44px; width:232px; height:184px;"></div>
+    <span class="lbl-space" style="left:684px; top:54px;">05 Provide</span>
+    <div class="inner-box" style="left:686px; top:70px; width:200px; height:148px;"></div>
+    <span class="lbl-inner" style="left:698px; top:80px;">AMT via ABAP Solution</span>
+    <span class="lbl-desc"  style="left:698px; top:93px;">EAT · Provider System</span>
+    <div class="sw"        style="left:703px; top:112px; width:118px; height:48px;">
+      Software<br>Component
+    </div>
+
+    <!-- Multitenant Application (outside BTP GA, to the right) -->
+    <div class="mt-app"    style="left:930px; top:112px; width:155px; height:48px;">
+      Multitenant Application
+    </div>
+
+
+    <!-- ══ AWS space wrapping SED + SET ══ -->
+    <div class="space"     style="left:1103px; top:10px; width:470px; height:234px;"></div>
+    <span class="lbl-space" style="left:1115px; top:20px;">AWS</span>
+
+    <!-- SED -->
+    <div class="inner-box" style="left:1117px; top:44px; width:195px; height:176px;"></div>
+    <span class="lbl-inner" style="left:1129px; top:54px; font-weight:500;">SED</span>
+    <span class="lbl-desc"  style="left:1129px; top:68px;">S/4 HANA Development</span>
+    <div class="sw"        style="left:1155px; top:116px; width:118px; height:48px;">
+      Software<br>Component
+    </div>
+
+    <!-- SET -->
+    <div class="inner-box" style="left:1332px; top:44px; width:195px; height:176px;"></div>
+    <span class="lbl-inner" style="left:1344px; top:54px; font-weight:500;">SET</span>
+    <span class="lbl-desc"  style="left:1344px; top:68px;">S/4 HANA Test</span>
+    <div class="sw"        style="left:1370px; top:116px; width:118px; height:48px;">
+      Software<br>Component
+    </div>
+
+    <!-- Add-on Assembly Kit label -->
+    <span class="arrow-lbl" style="left:1255px; top:300px; font-size:10.5px; color:#5a6470;">
+      Add-on Assembly Kit
+    </span>
+
+
+    <!-- ══ gCTS Repository Clone (top) ══ -->
+    <div class="space"     style="left:336px; top:310px; width:220px; height:110px;"></div>
+    <span class="lbl-inner" style="left:348px; top:320px; font-weight:500;">gCTS Repository Clone</span>
+    <span class="lbl-desc"  style="left:348px; top:333px;">gCTS Enabled BTP ABAP Environment Repo</span>
+    <div class="sw"        style="left:377px; top:348px; width:118px; height:48px;">
+      Software<br>Component
+    </div>
+
+    <!-- ══ gCTS Repository / Source of truth (bottom) ══ -->
+    <div class="space"     style="left:336px; top:455px; width:220px; height:110px;"></div>
+    <span class="lbl-inner" style="left:348px; top:465px; font-weight:500;">gCTS Repository</span>
+    <span class="lbl-desc"  style="left:348px; top:478px;">gCTS Enabled Public Cloud Repo</span>
+    <div class="sw"        style="left:377px; top:493px; width:118px; height:48px;">
+      Software<br>Component
+    </div>
+
+    <!-- Sync label -->
+    <span class="arrow-lbl" style="left:436px; top:432px; font-size:10px; color:#0070f2; transform:translateX(-50%);">2 way mirroring</span>
+
+
+    <!-- ══ Floating arrow labels ══ -->
+    <span class="arrow-lbl" style="left:0;     top:503px;">Release Transport Request</span>
+    <span class="arrow-lbl" style="left:442px; top:296px;">Clone/Pull Software Component</span>
+    <span class="arrow-lbl" style="left:790px; top:503px;">Clone/Pull Software Component</span>
+
+
+    <!-- ══ SVG Arrows ══ -->
+    <svg class="overlay">
+      <defs>
+        <marker id="ah" markerWidth="9" markerHeight="9" refX="7.5" refY="3.5" orient="auto">
+          <path d="M0,0 L0,7 L9,3.5 z" fill="#32363a"/>
+        </marker>
+        <marker id="ah-blue-start" markerWidth="9" markerHeight="9" refX="1.5" refY="3.5" orient="auto">
+          <path d="M9,0 L9,7 L0,3.5 z" fill="#0070f2"/>
+        </marker>
+        <marker id="ah-blue" markerWidth="9" markerHeight="9" refX="7.5" refY="3.5" orient="auto">
+          <path d="M0,0 L0,7 L9,3.5 z" fill="#0070f2"/>
+        </marker>
+      </defs>
+
+      <!-- A1  D10 → source of truth -->
+      <path d="M128,160 L128,517 L375,517"
+            fill="none" stroke="#32363a" stroke-width="1.6" stroke-linejoin="round"
+            marker-end="url(#ah)"/>
+
+      <!-- SYNC  source ↕ clone (dashed blue, bidirectional) -->
+      <path d="M436,493 L436,398"
+            fill="none" stroke="#0070f2" stroke-width="1.6" stroke-dasharray="5,3"
+            marker-start="url(#ah-blue-start)" marker-end="url(#ah-blue)"/>
+
+      <!-- A2  clone → DEV (straight up) -->
+      <path d="M436,348 L436,162"
+            fill="none" stroke="#32363a" stroke-width="1.6"
+            marker-end="url(#ah)"/>
+
+      <!-- Internal BTP transport chain: DEV → TST → EAT -->
+      <path d="M495,136 L523,136"
+            fill="none" stroke="#32363a" stroke-width="1.6"
+            marker-end="url(#ah)"/>
+      <path d="M643,136 L701,136"
+            fill="none" stroke="#32363a" stroke-width="1.6"
+            marker-end="url(#ah)"/>
+
+      <!-- MT App → EAT (horizontal left) -->
+      <path d="M928,136 L823,136"
+            fill="none" stroke="#32363a" stroke-width="1.6"
+            marker-end="url(#ah)"/>
+
+      <!-- A3  source of truth → SED -->
+      <path d="M495,517 L1214,517 L1214,166"
+            fill="none" stroke="#32363a" stroke-width="1.6" stroke-linejoin="round"
+            marker-end="url(#ah)"/>
+
+      <!-- A4  SED → SET (Add-on Assembly Kit) -->
+      <path d="M1214,164 L1214,296 L1429,296 L1429,166"
+            fill="none" stroke="#32363a" stroke-width="1.6" stroke-linejoin="round"
+            marker-end="url(#ah)"/>
+    </svg>
+
+  </div><!-- .diagram -->
+</div><!-- .card -->
+</body>
+</html>
