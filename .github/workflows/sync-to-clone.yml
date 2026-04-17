@@ -40,62 +40,104 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
-      - name: Convert gCTS objects to abapGit format
+      - name: Install abapgit-cli from source
+        run: |
+          git clone --depth 1 https://github.com/austinkloske22/abapgit-cli.git /tmp/abapgit-cli
+          cd /tmp/abapgit-cli && npm ci && npm run build
+          echo "abapgit-cli installed and built"
+
+      - name: Check for changes
+        id: changes
         run: |
           IS_MANUAL="${{ github.event_name == 'workflow_dispatch' }}"
 
           if [ "$IS_MANUAL" = "true" ]; then
-            echo "Manual trigger — full conversion of all objects"
+            echo "Manual trigger — full sync of all objects"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
           else
-            # Check if anything actually changed
             cd source
             CHANGED=$(git diff --name-only HEAD~1 HEAD -- objects/ .gctsmetadata/ || true)
             cd ..
 
             if [ -z "$CHANGED" ]; then
               echo "No object changes detected"
-              exit 0
+              echo "has_changes=false" >> $GITHUB_OUTPUT
+            else
+              echo "Changed files:"
+              echo "$CHANGED"
+              echo "has_changes=true" >> $GITHUB_OUTPUT
             fi
-
-            echo "Changed files:"
-            echo "$CHANGED"
           fi
 
-          # Convert all objects using abapgit-cli
-          mkdir -p clone/src
-          npx abapgit-cli@latest convert \
-            --from gcts --to abapgit \
+      - name: Sanitize gCTS objects for BTP compatibility
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          # Run sanitizer — outputs gCTS format with D10-specific fields stripped
+          node /tmp/abapgit-cli/dist/bin/abapgit-cli.js sanitize \
             -i source/objects \
-            -o clone/src \
+            -o /tmp/sanitized \
+            --metadata source/.gctsmetadata \
             -v
 
+          # Copy sanitized objects to clone repo
+          rm -rf clone/objects clone/.gctsmetadata/nametabs clone/.gctsmetadata/objecttypes
+          cp -r /tmp/sanitized/objects clone/
+          cp -r /tmp/sanitized/.gctsmetadata clone/
+
+          # Remove old abapGit-format src/ directory if it exists (legacy cleanup)
+          rm -rf clone/src
+
+          # Ensure .gcts.properties.json exists in clone
+          # If BTP hasn't pushed one, create a minimal format config
+          # NEVER overwrite an existing one (it contains BTP identity)
+          if [ ! -f clone/.gcts.properties.json ]; then
+            cat > clone/.gcts.properties.json << 'GCTSEOF'
+          {
+            "name": "unified-sap-addon-clone",
+            "version": "1.0.0",
+            "description": "BTP ABAP Environment Clone",
+            "repositoryLayout": {
+              "format": "json",
+              "formatVersion": "6",
+              "keepClient": "false",
+              "metaInformation": ".gctsmetadata/",
+              "tableContent": "true"
+            }
+          }
+          GCTSEOF
+            echo "Created minimal .gcts.properties.json"
+          else
+            echo ".gcts.properties.json already exists — preserving"
+          fi
+
       - name: Handle deleted objects (incremental sync only)
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && steps.changes.outputs.has_changes == 'true'
         run: |
           cd source
-          DELETED=$(git diff --name-only --diff-filter=D HEAD~1 HEAD -- objects/ || true)
+          DELETED_DIRS=$(git diff --name-only --diff-filter=D HEAD~1 HEAD -- objects/ \
+            | sed -n 's|^objects/\([^/]*/[^/]*\)/.*|\1|p' | sort -u || true)
           cd ..
 
-          if [ -n "$DELETED" ]; then
-            echo "Deleted objects detected:"
-            echo "$DELETED"
-            for gcts_path in $DELETED; do
-              obj_dir=$(echo "$gcts_path" | cut -d'/' -f3)
-              obj_name=$(echo "$obj_dir" | python3 -c "import sys,urllib.parse; print(urllib.parse.unquote(sys.stdin.read().strip()))")
-              abapgit_base=$(echo "$obj_name" | sed 's|/|#|g' | tr '[:upper:]' '[:lower:]')
-              find clone/src/ -name "${abapgit_base}.*" -delete 2>/dev/null || true
-              echo "  Removed ${abapgit_base}.* from clone"
+          if [ -n "$DELETED_DIRS" ]; then
+            echo "Deleted object directories:"
+            for obj_path in $DELETED_DIRS; do
+              echo "  Removing clone/objects/${obj_path}"
+              rm -rf "clone/objects/${obj_path}" 2>/dev/null || true
             done
           fi
 
       - name: Commit and push to clone
+        if: steps.changes.outputs.has_changes == 'true'
         run: |
           cd clone
           git config user.name "gcts-sync-bot"
           git config user.email "gcts-sync-bot@contax.com"
-          git add -A src/
+          git add -A objects/ .gctsmetadata/ .gcts.properties.json
+
+          # Also stage removal of old src/ if it existed
+          git add -A src/ 2>/dev/null || true
 
           if git diff --cached --quiet; then
             echo "No changes to sync"
@@ -105,4 +147,5 @@ jobs:
           SOURCE_MSG=$(cd ../source && git log -1 --format='%s')
           git commit -m "[SYNC] ${SOURCE_MSG}"
 
-          git push || (git pull --rebase && git push)
+          # Normal push only — NEVER force push (breaks BTP)
+          git push
