@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       full_sync:
-        description: 'Run full conversion of all objects (not just changed)'
+        description: 'Run full sync of all objects'
         required: false
         default: 'true'
 
@@ -37,17 +37,6 @@ jobs:
           path: clone
           fetch-depth: 1
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install abapgit-cli from source
-        run: |
-          git clone --depth 1 https://github.com/austinkloske22/abapgit-cli.git /tmp/abapgit-cli
-          cd /tmp/abapgit-cli && npm ci && npm run build
-          echo "abapgit-cli installed and built"
-
       - name: Check for changes
         id: changes
         run: |
@@ -71,46 +60,26 @@ jobs:
             fi
           fi
 
-      - name: Sanitize gCTS objects for BTP compatibility
+      - name: Sync objects to clone repo
         if: steps.changes.outputs.has_changes == 'true'
         run: |
-          # Run sanitizer — outputs gCTS format with D10-specific fields stripped
-          node /tmp/abapgit-cli/dist/bin/abapgit-cli.js sanitize \
-            -i source/objects \
-            -o /tmp/sanitized \
-            --metadata source/.gctsmetadata \
-            -v
+          # Copy objects/ directly — D10 and BTP use identical gCTS schemas
+          # (confirmed by comparing zevent-ref-btp nametabs with D10 nametabs)
+          # No field stripping needed — the schemas are identical (55 fields DD02L)
+          rsync -av --delete source/objects/ clone/objects/
 
-          # Copy sanitized objects to clone repo
-          rm -rf clone/objects clone/.gctsmetadata/nametabs clone/.gctsmetadata/objecttypes
-          cp -r /tmp/sanitized/objects clone/
-          cp -r /tmp/sanitized/.gctsmetadata clone/
+          # Sync nametabs additively (preserve BTP-specific files like ATO_E07)
+          rsync -av source/.gctsmetadata/nametabs/ clone/.gctsmetadata/nametabs/
+
+          # Sync objecttypes additively
+          mkdir -p clone/.gctsmetadata/objecttypes/
+          rsync -av source/.gctsmetadata/objecttypes/ clone/.gctsmetadata/objecttypes/
 
           # Remove old abapGit-format src/ directory if it exists (legacy cleanup)
           rm -rf clone/src
 
-          # Ensure .gcts.properties.json exists in clone
-          # If BTP hasn't pushed one, create a minimal format config
-          # NEVER overwrite an existing one (it contains BTP identity)
-          if [ ! -f clone/.gcts.properties.json ]; then
-            cat > clone/.gcts.properties.json << 'GCTSEOF'
-          {
-            "name": "unified-sap-addon-clone",
-            "version": "1.0.0",
-            "description": "BTP ABAP Environment Clone",
-            "repositoryLayout": {
-              "format": "json",
-              "formatVersion": "6",
-              "keepClient": "false",
-              "metaInformation": ".gctsmetadata/",
-              "tableContent": "true"
-            }
-          }
-          GCTSEOF
-            echo "Created minimal .gcts.properties.json"
-          else
-            echo ".gcts.properties.json already exists — preserving"
-          fi
+          # NEVER touch .gcts.properties.json (BTP identity)
+          echo ".gcts.properties.json preserved"
 
       - name: Handle deleted objects (incremental sync only)
         if: github.event_name == 'push' && steps.changes.outputs.has_changes == 'true'
@@ -134,7 +103,7 @@ jobs:
           cd clone
           git config user.name "gcts-sync-bot"
           git config user.email "gcts-sync-bot@contax.com"
-          git add -A objects/ .gctsmetadata/ .gcts.properties.json
+          git add -A objects/ .gctsmetadata/
 
           # Also stage removal of old src/ if it existed
           git add -A src/ 2>/dev/null || true
@@ -147,5 +116,5 @@ jobs:
           SOURCE_MSG=$(cd ../source && git log -1 --format='%s')
           git commit -m "[SYNC] ${SOURCE_MSG}"
 
-          # Normal push only — NEVER force push (breaks BTP)
+          # Normal push only — NEVER force push (breaks BTP software component)
           git push
