@@ -25,11 +25,12 @@
             date_to     = '20260526'
             local_last_changed_at = lv_timestamp
             last_changed_at       =  lv_timestamp ) ).
-         CATCH cx_uuid_error.
-         "handle exception
+         CATCH cx_uuid_error INTO DATA(lx_error).
+          out->write( |UUID Error: { lx_error->get_text( ) }| ).
+          RETURN.
      ENDTRY.
 
-     DELETE FROM /coss/event.
+     DELETE FROM /coss/event WHERE event_uuid IS NOT INITIAL..
      INSERT /coss/event FROM TABLE @lt_event.
      COMMIT WORK.
 
