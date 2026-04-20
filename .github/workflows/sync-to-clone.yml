@@ -79,7 +79,7 @@ jobs:
             -i source/objects \
             -o /tmp/sanitized \
             --metadata source/.gctsmetadata \
-            --component /COSS/_UNIFIED \
+            --component /COSS/UNIFIED \
             -v
 
           # Copy sanitized objects to clone repo
