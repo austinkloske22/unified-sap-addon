@@ -1,0 +1,84 @@
+[
+ {
+  "table": "SRVB_BIND_TYPE",
+  "data": [
+   {
+    "SRVB_NAME": "/COSS/API_EVENT_O4",
+    "VERSION": "A",
+    "BIND_TYPE_IMPL": "/COSS/API_EVENT_O4",
+    "BIND_TYPE_CATEGORY": 1,
+    "BIND_TYPE": "ODATA",
+    "BIND_TYPE_VERSION": "V4"
+   }
+  ]
+ },
+ {
+  "table": "SRVB_HEAD",
+  "data": [
+   {
+    "SRVB_NAME": "/COSS/API_EVENT_O4",
+    "VERSION": "A",
+    "CHANGED_BY": "SAP_CUSTOMER",
+    "CHANGED_ON": "2026-04-20",
+    "CHANGED_AT": "12:26:40",
+    "ABAP_LANGUAGE_VERSION": "5"
+   }
+  ]
+ },
+ {
+  "table": "SRVB_HEAD_T",
+  "data": [
+   {
+    "SRVB_NAME": "/COSS/API_EVENT_O4",
+    "VERSION": "A",
+    "LANGUAGE": "E",
+    "DESCRIPTION": "Service Binding for /COSS/API_EVENT_O4"
+   }
+  ]
+ },
+ {
+  "table": "SRVB_SERVICES",
+  "data": [
+   {
+    "SRVB_NAME": "/COSS/API_EVENT_O4",
+    "VERSION": "A",
+    "SERVICE_NAME": "/COSS/API_EVENT_O4",
+    "SERVICE_VERSION": 1,
+    "SERVICE_MINOR_VERSION": 0,
+    "SERVICE_PATCH_VERSION": 0,
+    "SERVICE_BUILD_VERSION": "",
+    "SRVDNAME": "/COSS/API_EVENT_O4",
+    "IS_SAP_SERVICE": "-"
+   }
+  ]
+ },
+ {
+  "table": "TADIR",
+  "data": [
+   {
+    "PGMID": "R3TR",
+    "OBJECT": "SRVB",
+    "OBJ_NAME": "/COSS/API_EVENT_O4",
+    "KORRNUM": "",
+    "SRCSYSTEM": "...",
+    "AUTHOR": "SAP_CUSTOMER",
+    "SRCDEP": "",
+    "DEVCLASS": "/COSS/EVENT",
+    "GENFLAG": "",
+    "EDTFLAG": "",
+    "CPROJECT": " L",
+    "MASTERLANG": "E",
+    "VERSID": "",
+    "PAKNOCHECK": "",
+    "OBJSTABLTY": "",
+    "COMPONENT": "",
+    "CRELEASE": "",
+    "DELFLAG": "",
+    "TRANSLTTXT": "",
+    "CREATED_ON": "2026-04-20",
+    "CHECK_DATE": "2026-04-20",
+    "CHECK_CFG": ""
+   }
+  ]
+ }
+]

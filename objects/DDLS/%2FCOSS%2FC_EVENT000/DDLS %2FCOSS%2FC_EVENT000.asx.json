@@ -1,0 +1,216 @@
+[
+ {
+  "table": "DDDDLSRC",
+  "data": [
+   {
+    "DDLNAME": "/COSS/C_EVENT000",
+    "AS4LOCAL": "N",
+    "AS4USER": "SAP_CUSTOMER",
+    "AS4DATE": "0000-00-00",
+    "AS4TIME": "00:00:00",
+    "SOURCE": "@Metadata.allowExtensions: true\r\n@Metadata.ignorePropagatedAnnotations: true\r\n@Endusertext: {\r\n  Label: '###GENERATED Core Data Service Entity'\r\n}\r\n@Objectmodel: {\r\n  Sapobjectnodetype.Name: '/COSS/EVENT000'\r\n}\r\n@AccessControl.authorizationCheck: #MANDATORY\r\ndefine root view entity /COSS/C_EVENT000\r\n  provider contract TRANSACTIONAL_QUERY\r\n  as projection on /COSS/R_EVENT000\r\n  association [1..1] to /COSS/R_EVENT000 as _BaseEntity on $projection.EVENTUUID = _BaseEntity.EVENTUUID\r\n{\r\n  key EventUUID,\r\n  EventID,\r\n  EventName,\r\n  Location,\r\n  IsOnline,\r\n  DateFrom,\r\n  DateTo,\r\n  CreatedBy,\r\n  ChangedBy,\r\n  @Semantics: {\r\n    Systemdatetime.Localinstancelastchangedat: true\r\n  }\r\n  LocalLastChangedAt,\r\n  @Semantics: {\r\n    Systemdatetime.Lastchangedat: true\r\n  }\r\n  LastChangedAt,\r\n  _BaseEntity\r\n}\r\n/*+[internal] {\n\"BASEINFO\":\n{\n\"FROM\":\n[\n\"/COSS/R_EVENT000\"\n],\n\"ASSOCIATED\":\n[\n\"/COSS/R_EVENT000\"\n],\n\"BASE\":\n[],\n\"ANNO_REF\":\n[],\n\"SCALAR_FUNCTION\":\n[],\n\"VERSION\":0,\n\"ANNOREF_EVALUATION_ERROR\":\"\"\n}\n}*/",
+    "PARENTNAME": "",
+    "ACTFLAG": "",
+    "CHGFLAG": "",
+    "SOURCE_TYPE": "P",
+    "SOURCE_ORIGIN": "0",
+    "ABAP_LANGUAGE_VERSION": "5"
+   }
+  ]
+ },
+ {
+  "table": "DDDDLSRC02BT",
+  "data": [
+   {
+    "DDLNAME": "/COSS/C_EVENT000",
+    "STRUCOBJN": "/COSS/C_EVENT000",
+    "DDLANGUAGE": "E",
+    "AS4LOCAL": "N",
+    "DDTEXT": "###GENERATED Core Data Service Entity"
+   }
+  ]
+ },
+ {
+  "table": "DDDDLSRCT",
+  "data": [
+   {
+    "DDLNAME": "/COSS/C_EVENT000",
+    "DDLANGUAGE": "E",
+    "AS4LOCAL": "N",
+    "DDTEXT": "Projection View for /COSS/R_EVENT000"
+   }
+  ]
+ },
+ {
+  "table": "DDFIELDANNO",
+  "data": [
+   {
+    "STRUCOBJN": "/COSS/C_EVENT000",
+    "LFIELDNAME": "LASTCHANGEDAT",
+    "NAME": "SEMANTICS",
+    "POSITION": 6,
+    "VALUE": ""
+   },
+   {
+    "STRUCOBJN": "/COSS/C_EVENT000",
+    "LFIELDNAME": "LASTCHANGEDAT",
+    "NAME": "SEMANTICS.SYSTEMDATETIME",
+    "POSITION": 7,
+    "VALUE": ""
+   },
+   {
+    "STRUCOBJN": "/COSS/C_EVENT000",
+    "LFIELDNAME": "LASTCHANGEDAT",
+    "NAME": "SEMANTICS.SYSTEMDATETIME.LASTCHANGEDAT",
+    "POSITION": 8,
+    "VALUE": "true"
+   },
+   {
+    "STRUCOBJN": "/COSS/C_EVENT000",
+    "LFIELDNAME": "LOCALLASTCHANGEDAT",
+    "NAME": "SEMANTICS",
+    "POSITION": 3,
+    "VALUE": ""
+   },
+   {
+    "STRUCOBJN": "/COSS/C_EVENT000",
+    "LFIELDNAME": "LOCALLASTCHANGEDAT",
+    "NAME": "SEMANTICS.SYSTEMDATETIME",
+    "POSITION": 4,
+    "VALUE": ""
+   },
+   {
+    "STRUCOBJN": "/COSS/C_EVENT000",
+    "LFIELDNAME": "LOCALLASTCHANGEDAT",
+    "NAME": "SEMANTICS.SYSTEMDATETIME.LOCALINSTANCELASTCHANGEDAT",
+    "POSITION": 5,
+    "VALUE": "true"
+   },
+   {
+    "STRUCOBJN": "/COSS/C_EVENT000",
+    "LFIELDNAME": "MANDT",
+    "NAME": "ABAPCATALOG",
+    "POSITION": 1,
+    "VALUE": ""
+   },
+   {
+    "STRUCOBJN": "/COSS/C_EVENT000",
+    "LFIELDNAME": "MANDT",
+    "NAME": "ABAPCATALOG.INTERNAL.ISMANDT",
+    "POSITION": 2,
+    "VALUE": ""
+   }
+  ]
+ },
+ {
+  "table": "DDHEADANNO",
+  "data": [
+   {
+    "STRUCOBJN": "/COSS/C_EVENT000",
+    "NAME": "ACCESSCONTROL",
+    "POSITION": 10,
+    "VALUE": ""
+   },
+   {
+    "STRUCOBJN": "/COSS/C_EVENT000",
+    "NAME": "ACCESSCONTROL.AUTHORIZATIONCHECK",
+    "POSITION": 11,
+    "VALUE": "#MANDATORY"
+   },
+   {
+    "STRUCOBJN": "/COSS/C_EVENT000",
+    "NAME": "ENDUSERTEXT",
+    "POSITION": 5,
+    "VALUE": ""
+   },
+   {
+    "STRUCOBJN": "/COSS/C_EVENT000",
+    "NAME": "ENDUSERTEXT.LABEL",
+    "POSITION": 6,
+    "VALUE": "'###GENERATED Core Data Service Entity'"
+   },
+   {
+    "STRUCOBJN": "/COSS/C_EVENT000",
+    "NAME": "METADATA",
+    "POSITION": 1,
+    "VALUE": ""
+   },
+   {
+    "STRUCOBJN": "/COSS/C_EVENT000",
+    "NAME": "METADATA",
+    "POSITION": 3,
+    "VALUE": ""
+   },
+   {
+    "STRUCOBJN": "/COSS/C_EVENT000",
+    "NAME": "METADATA.ALLOWEXTENSIONS",
+    "POSITION": 2,
+    "VALUE": "true"
+   },
+   {
+    "STRUCOBJN": "/COSS/C_EVENT000",
+    "NAME": "METADATA.IGNOREPROPAGATEDANNOTATIONS",
+    "POSITION": 4,
+    "VALUE": "true"
+   },
+   {
+    "STRUCOBJN": "/COSS/C_EVENT000",
+    "NAME": "OBJECTMODEL",
+    "POSITION": 7,
+    "VALUE": ""
+   },
+   {
+    "STRUCOBJN": "/COSS/C_EVENT000",
+    "NAME": "OBJECTMODEL.SAPOBJECTNODETYPE",
+    "POSITION": 8,
+    "VALUE": ""
+   },
+   {
+    "STRUCOBJN": "/COSS/C_EVENT000",
+    "NAME": "OBJECTMODEL.SAPOBJECTNODETYPE.NAME",
+    "POSITION": 9,
+    "VALUE": "'/COSS/EVENT000'"
+   }
+  ]
+ },
+ {
+  "table": "DDLDEPENDENCY",
+  "data": [
+   {
+    "DDLNAME": "/COSS/C_EVENT000",
+    "OBJECTNAME": "/COSS/C_EVENT000",
+    "STATE": "N",
+    "OBJECTTYPE": "STOB"
+   }
+  ]
+ },
+ {
+  "table": "TADIR",
+  "data": [
+   {
+    "PGMID": "R3TR",
+    "OBJECT": "DDLS",
+    "OBJ_NAME": "/COSS/C_EVENT000",
+    "KORRNUM": "",
+    "SRCSYSTEM": "...",
+    "AUTHOR": "SAP_CUSTOMER",
+    "SRCDEP": "",
+    "DEVCLASS": "/COSS/EVENT",
+    "GENFLAG": "",
+    "EDTFLAG": "",
+    "CPROJECT": " L",
+    "MASTERLANG": "E",
+    "VERSID": "",
+    "PAKNOCHECK": "",
+    "OBJSTABLTY": "",
+    "COMPONENT": "",
+    "CRELEASE": "",
+    "DELFLAG": "",
+    "TRANSLTTXT": "",
+    "CREATED_ON": "2026-04-20",
+    "CHECK_DATE": "2026-04-20",
+    "CHECK_CFG": ""
+   }
+  ]
+ }
+]

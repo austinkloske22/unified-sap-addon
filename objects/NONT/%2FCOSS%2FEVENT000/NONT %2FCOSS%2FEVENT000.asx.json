@@ -1,0 +1,68 @@
+[
+ {
+  "table": "NONT_HEADER",
+  "data": [
+   {
+    "NONT_NAME": "/COSS/EVENT000",
+    "VERSION": "A",
+    "CREATED_BY": "SAP_CUSTOMER",
+    "CHANGED_BY": "SAP_CUSTOMER",
+    "CREATED_TS": "+020260420123451",
+    "CHANGED_TS": "+020260420123520",
+    "ABAP_LANGUAGE_VERSION": "5"
+   }
+  ]
+ },
+ {
+  "table": "NONT_HEADER_T",
+  "data": [
+   {
+    "NONT_NAME": "/COSS/EVENT000",
+    "VERSION": "A",
+    "LANGUAGE": "E",
+    "DESCRIPTION": "SAP Object Node Type /COSS/EVENT000"
+   }
+  ]
+ },
+ {
+  "table": "NONT_NODE",
+  "data": [
+   {
+    "NONT_NAME": "/COSS/EVENT000",
+    "VERSION": "A",
+    "NODE_NAME_RAW": "/COSS/EVENT000",
+    "NODE_PARENT_NAME": "/COSS/EVENT000",
+    "ROOT_NODE_FLAG": "X"
+   }
+  ]
+ },
+ {
+  "table": "TADIR",
+  "data": [
+   {
+    "PGMID": "R3TR",
+    "OBJECT": "NONT",
+    "OBJ_NAME": "/COSS/EVENT000",
+    "KORRNUM": "",
+    "SRCSYSTEM": "...",
+    "AUTHOR": "SAP_CUSTOMER",
+    "SRCDEP": "",
+    "DEVCLASS": "/COSS/EVENT",
+    "GENFLAG": "",
+    "EDTFLAG": "",
+    "CPROJECT": " L",
+    "MASTERLANG": "E",
+    "VERSID": "",
+    "PAKNOCHECK": "",
+    "OBJSTABLTY": "",
+    "COMPONENT": "",
+    "CRELEASE": "",
+    "DELFLAG": "",
+    "TRANSLTTXT": "",
+    "CREATED_ON": "2026-04-20",
+    "CHECK_DATE": "2026-04-20",
+    "CHECK_CFG": ""
+   }
+  ]
+ }
+]

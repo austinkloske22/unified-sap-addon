@@ -1,0 +1,74 @@
+[
+ {
+  "table": "TADIR",
+  "data": [
+   {
+    "PGMID": "R3TR",
+    "OBJECT": "SUSH",
+    "OBJ_NAME": "875BD855F020B26125C4FE11FBC77DHT",
+    "KORRNUM": "",
+    "SRCSYSTEM": "...",
+    "AUTHOR": "SAP_CUSTOMER",
+    "SRCDEP": "",
+    "DEVCLASS": "/COSS/EVENT",
+    "GENFLAG": "",
+    "EDTFLAG": "",
+    "CPROJECT": " L",
+    "MASTERLANG": "E",
+    "VERSID": "",
+    "PAKNOCHECK": "",
+    "OBJSTABLTY": "",
+    "COMPONENT": "",
+    "CRELEASE": "",
+    "DELFLAG": "",
+    "TRANSLTTXT": "",
+    "CREATED_ON": "2026-04-20",
+    "CHECK_DATE": "2026-04-20",
+    "CHECK_CFG": ""
+   }
+  ]
+ },
+ {
+  "table": "USOBHASH",
+  "data": [
+   {
+    "NAME": "875BD855F020B26125C4FE11FBC77D",
+    "TYPE": "HT",
+    "PGMID": "R3TR",
+    "OBJECT": "G4BA",
+    "OBJ_NAME": "/COSS/API_EVENT_O4",
+    "SERVICE_TYPE": "",
+    "SERVICE": ""
+   }
+  ]
+ },
+ {
+  "table": "USOBX",
+  "data": [
+   {
+    "NAME": "875BD855F020B26125C4FE11FBC77D",
+    "TYPE": "HT",
+    "OBJECT": "S_START",
+    "MODIFIER": "SAP_CUSTOMER",
+    "MODDATE": "2026-04-20",
+    "MODTIME": "12:26:46",
+    "OKFLAG": "X"
+   }
+  ]
+ },
+ {
+  "table": "USOB_SM",
+  "data": [
+   {
+    "NAME": "875BD855F020B26125C4FE11FBC77D",
+    "TYPE": "HT",
+    "MODIFIER": "SAP_CUSTOMER",
+    "MODDATE": "2026-04-20",
+    "MODTIME": "12:26:46",
+    "OKFLAG": "",
+    "ATTRIBUTES": "",
+    "ABAP_LANGUAGE_VERSION": "5"
+   }
+  ]
+ }
+]
