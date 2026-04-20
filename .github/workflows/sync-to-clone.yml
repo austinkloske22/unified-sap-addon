@@ -60,20 +60,38 @@ jobs:
             fi
           fi
 
-      - name: Sync objects to clone repo
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install abapgit-cli
+        run: |
+          git clone --depth 1 https://github.com/austinkloske22/abapgit-cli.git /tmp/abapgit-cli
+          cd /tmp/abapgit-cli && npm ci && npm run build
+
+      - name: Sanitize and sync objects to clone repo
         if: steps.changes.outputs.has_changes == 'true'
         run: |
-          # Copy objects/ directly — D10 and BTP use identical gCTS schemas
-          # (confirmed by comparing zevent-ref-btp nametabs with D10 nametabs)
-          # No field stripping needed — the schemas are identical (55 fields DD02L)
-          rsync -av --delete source/objects/ clone/objects/
+          # Normalize TADIR metadata for BTP (CPROJECT, CRELEASE, COMPONENT)
+          # All object data and nametabs pass through unchanged (identical schemas)
+          node /tmp/abapgit-cli/dist/bin/abapgit-cli.js sanitize \
+            -i source/objects \
+            -o /tmp/sanitized \
+            --metadata source/.gctsmetadata \
+            --component /COSS/_UNIFIED \
+            -v
 
-          # Sync nametabs additively (preserve BTP-specific files like ATO_E07)
-          rsync -av source/.gctsmetadata/nametabs/ clone/.gctsmetadata/nametabs/
+          # Copy sanitized objects to clone repo
+          rm -rf clone/objects
+          cp -r /tmp/sanitized/objects clone/
 
-          # Sync objecttypes additively
+          # Sync nametabs (preserve BTP-specific files like ATO_E07)
+          rsync -av /tmp/sanitized/.gctsmetadata/nametabs/ clone/.gctsmetadata/nametabs/
+
+          # Sync objecttypes
           mkdir -p clone/.gctsmetadata/objecttypes/
-          rsync -av source/.gctsmetadata/objecttypes/ clone/.gctsmetadata/objecttypes/
+          rsync -av /tmp/sanitized/.gctsmetadata/objecttypes/ clone/.gctsmetadata/objecttypes/
 
           # Remove old abapGit-format src/ directory if it exists (legacy cleanup)
           rm -rf clone/src
