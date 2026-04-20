@@ -82,9 +82,8 @@ jobs:
             --component /COSS/UNIFIED \
             -v
 
-          # Copy sanitized objects to clone repo
-          rm -rf clone/objects
-          cp -r /tmp/sanitized/objects clone/
+          # Merge sanitized objects into clone repo (additive — preserves BTP-native objects)
+          rsync -av /tmp/sanitized/objects/ clone/objects/
 
           # Sync nametabs (preserve BTP-specific files like ATO_E07)
           rsync -av /tmp/sanitized/.gctsmetadata/nametabs/ clone/.gctsmetadata/nametabs/
